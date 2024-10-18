@@ -1,0 +1,50 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import-check:
+      enabled: false
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+
+      routes:
+        - id: employee-client
+          uri: lb://employee-client
+          predicates:
+            - Path=/employees/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8888/eureka
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: DEBUG
+    reactor.netty.http.client: DEBUG
+    org.springframework.cloud.gateway.filter.GlobalFilterChain$GlobalFilterChainBuilder: DEBUG
+    org.springframework.cloud.gateway.filter.GlobalFilterChain: DEBUG
+    org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter: DEBUG
+    org.springframework.cloud.gateway.filter.ForwardingHeadersFilter: DEBUG
+    org.springframework.cloud.gateway.filter.ForwardingHeadersGatewayFilter: DEBUG
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info
+info:
+  app:
+    name: "API Gateway"
+    version: "1.0.0"
+    description: "API Gateway Service for managing routes"
