@@ -1,0 +1,75 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0.33
+    container_name: employee-server-mysql
+    environment:
+      MYSQL_DATABASE: employee-server
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: employee-server-user
+      MYSQL_PASSWORD: secret_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - employee-server-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - mysql
+    ports:
+      - '8089:8089'
+    networks:
+      - employee-server-network
+
+  employee-server:
+    build:
+      context: ./employee-server
+    container_name: employee-server
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/employee-server
+      SPRING_DATASOURCE_USERNAME: employee-server-user
+      SPRING_DATASOURCE_PASSWORD: secret_password
+    ports:
+      - '9000:9000'
+    networks:
+      - employee-server-network
+
+  employee-client:
+    build:
+      context: ./employeeClient
+    container_name: employee-client
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/employee-server
+      SPRING_DATASOURCE_USERNAME: employee-server-user
+      SPRING_DATASOURCE_PASSWORD: secret_password
+    ports:
+      - '8080:8080'
+    networks:
+      - employee-server-network
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: eureka-server
+    depends_on:
+      - mysql
+    ports:
+      - '8888:8888'
+    networks:
+      - employee-server-network
+
+volumes:
+  mysql-data:
+
+networks:
+  employee-server-network:
+    driver: bridge
